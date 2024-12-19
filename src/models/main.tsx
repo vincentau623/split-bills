@@ -1,0 +1,30 @@
+export interface Person {
+    name: string // default should be A,B,C
+    shouldPay: number
+    shouldReceive: number
+    paid: boolean
+}
+
+export interface BillItem {
+    name: string // default should be item1, item2, item3
+    price: number
+    toSplit: boolean // the bill is splited or pay by one person 
+    shdPayByName: string // default should be A // TODO: multiple people
+}
+
+export interface BillItemError {
+    name: string
+    price: string
+    shdPayByName: string
+}
+
+export interface Bill {
+    billItems: BillItem[]
+    people: Person[]
+    tax: number
+    tips: number
+    totalPrice: number
+    finalPrice: number
+    paidByName: string // TODO: multiple people
+    resolved: boolean
+}
