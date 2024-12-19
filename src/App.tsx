@@ -5,14 +5,15 @@ import { Bill, BillItem, Person } from './models/main';
 import ItemSection from './components/ItemsSection';
 import FinalPaymentSection from './components/FinalPaymentSection';
 import PeopleSection from './components/PeopleSection';
+import { useAppDispatch, useAppSelector } from './hooks/hooks';
+import { updateFinalPayment, updatePerson } from './hooks/billSlice';
 
 
 function App() {
   const [taxRate, setTaxRate] = useState<number>(0.13);
 
-  const [bill, setBill] = useState<Bill>({ billItems: [], people: [{ name: 'A', shouldPay: 0, shouldReceive: 0, paid: false }], tax: 0, tips: 0, totalPrice: 0, finalPrice: 0, paidByName: 'A', resolved: false, })
-
-  // Modal
+  const bill = useAppSelector((state) => state.bill.value)
+  const dispatch = useAppDispatch()
 
   // calculate split bills (including adding tax)
   const calculateSplitBills = () => {
@@ -21,15 +22,17 @@ function App() {
     }
     const total = bill.billItems.map((billItem: BillItem) => billItem.price).reduce((a, b) => a + b)
     const tax = total * taxRate
-    const tips = bill.tips
+    const tips = bill.finalPayment.tips
     const finalPrice = total + tax + tips
-    setBill({ ...bill, tax: tax, totalPrice: total, finalPrice: finalPrice })
+    // update final payment
+    const finalPayment = { ...bill.finalPayment, tax: tax, totalPrice: total, finalPrice: finalPrice }
+    dispatch(updateFinalPayment(finalPayment))
 
     const avgTax = tax / bill.people.length
     const avgTips = tips / bill.people.length
     // calculate people's shouldPay and shouldReceive
     // go through each item, calculate how much each person should pay
-    const updatedPeople = bill.people.map((person: Person) => {
+    bill.people.map((person: Person, index: number) => {
       const shdPay = bill.billItems.map((billItem: BillItem) => {
         console.log(billItem.shdPayByName === person.name)
         if (billItem.toSplit) {
@@ -41,14 +44,12 @@ function App() {
         }
       }).reduce((a, b) => a + b) + avgTax + avgTips
       console.log(person.name, shdPay)
-      if (person.name === bill.paidByName) {
-        return { ...person, shouldPay: shdPay - finalPrice < 0 ? 0 : shdPay - finalPrice, shouldReceive: finalPrice - shdPay }
-      } else {
-        return { ...person, shouldPay: shdPay }
+      let updatedPerson = { ...person, shouldPay: shdPay }
+      if (person.name === bill.finalPayment.paidByName) {
+        updatedPerson = { ...person, shouldPay: shdPay - finalPrice < 0 ? 0 : shdPay - finalPrice, shouldReceive: finalPrice - shdPay }
       }
+      dispatch(updatePerson({ index, person: updatedPerson }))
     })
-    console.log(updatedPeople)
-    setBill({ ...bill, people: updatedPeople })
   }
 
   useEffect(() => {
@@ -66,11 +67,11 @@ function App() {
     <Container maxWidth="sm">
       <Typography variant="h3">Split Bills</Typography>
       <hr />
-      <ItemSection bill={bill} />
+      <ItemSection />
       <hr />
-      <FinalPaymentSection bill={bill} taxRate={taxRate} />
+      <FinalPaymentSection taxRate={taxRate} />
       <hr />
-      <PeopleSection bill={bill} />
+      <PeopleSection />
 
 
 

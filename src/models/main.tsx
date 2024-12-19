@@ -18,13 +18,18 @@ export interface BillItemError {
     shdPayByName: string
 }
 
-export interface Bill {
-    billItems: BillItem[]
-    people: Person[]
+export interface FinalPayment {
+    subTotal: number
     tax: number
     tips: number
     totalPrice: number
     finalPrice: number
     paidByName: string // TODO: multiple people
+}
+
+export interface Bill {
+    billItems: BillItem[]
+    people: Person[]
+    finalPayment: FinalPayment
     resolved: boolean
 }

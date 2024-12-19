@@ -2,12 +2,14 @@ import { Stack, Typography, Button, Modal, Box, TextField } from "@mui/material"
 import { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { Bill } from "../models/main";
+import { useAppSelector } from "../hooks/hooks";
 
-const FinalPaymentSection = (props: { bill: Bill, taxRate: number }) => {
-    const { bill, taxRate } = props
+const FinalPaymentSection = (props: { taxRate: number }) => {
+    const { taxRate } = props
+    const bill = useAppSelector((state) => state.bill.value)
+
     const [finalPaymedntModalOpen, setFinalPaymentModalOpen] = useState<boolean>(false);
     const [tempFinalPrice, setTempFinalPrice] = useState<number>(0);
-
 
     // FINAL PAYMENT Actions
     // handle final price change
@@ -22,11 +24,11 @@ const FinalPaymentSection = (props: { bill: Bill, taxRate: number }) => {
         <>
             <Stack spacing={2}>
                 <Typography variant="h5">Final Payment</Typography>
-                <div>Tax: {bill.tax.toFixed(2)} ({taxRate * 100}%)</div>
-                <div>Tips: ${bill.tips.toFixed(2)}</div>
-                <div>Total Price: ${bill.totalPrice.toFixed(2)}</div>
-                <div>Final Price: ${bill.finalPrice.toFixed(2)}</div>
-                <div>Paid by: {bill.paidByName}</div>
+                <div>Tax: {bill.finalPayment.tax.toFixed(2)} ({taxRate * 100}%)</div>
+                <div>Tips: ${bill.finalPayment.tips.toFixed(2)}</div>
+                <div>Total Price: ${bill.finalPayment.totalPrice.toFixed(2)}</div>
+                <div>Final Price: ${bill.finalPayment.finalPrice.toFixed(2)}</div>
+                <div>Paid by: {bill.finalPayment.paidByName}</div>
                 <Button variant="contained" onClick={() => setFinalPaymentModalOpen(true)}>Edit Final Payment</Button>
             </Stack>
             {/* Final Payment Modal */}

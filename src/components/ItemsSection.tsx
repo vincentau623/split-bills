@@ -2,21 +2,15 @@ import { Stack, Typography, Button, Modal, Box, TextField, FormControl, InputLab
 import { Bill, BillItem, BillItemError, Person } from "../models/main";
 import { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
+import { useAppDispatch, useAppSelector } from "../hooks/hooks";
+import { addBillItem } from "../hooks/billSlice";
 
-const ItemSection = (props: { bill: Bill }) => {
-    const { bill } = props
-    const [billItems, setBillItems] = useState<BillItem[]>([
-        //dummy
-        {
-            name: 'Item 1',
-            price: 10,
-            shdPayByName: 'A',
-            toSplit: false
-        },
-    ])
+const ItemSection = () => {
+    const bill = useAppSelector((state) => state.bill.value)
+    const dispatch = useAppDispatch()
 
     const [billItemModalOpen, setBillItemModalOpen] = useState<boolean>(false);
-    const [tempBillItem, setTempBillItem] = useState<BillItem>({ name: `Item ${billItems.length + 1}`, price: 0, toSplit: false, shdPayByName: bill.people[0].name });
+    const [tempBillItem, setTempBillItem] = useState<BillItem>({ name: `Item ${bill.billItems.length + 1}`, price: 0, toSplit: false, shdPayByName: bill.people[0].name });
     const [tempBillItemError, setTempBillItemError] = useState<BillItemError>({ name: '', price: '', shdPayByName: '' });
 
 
@@ -37,7 +31,8 @@ const ItemSection = (props: { bill: Bill }) => {
         if (tempBillItemError.name !== '' || tempBillItemError.price !== '' || tempBillItemError.shdPayByName !== '') {
             setTempBillItemError(tempBillItemError)
         } else {
-            setBillItems([...billItems, tempBillItem])
+            dispatch(addBillItem(tempBillItem))
+            // setBillItems([...billItems, tempBillItem])
             setBillItemModalOpen(false)
         }
     }
@@ -53,7 +48,7 @@ const ItemSection = (props: { bill: Bill }) => {
 
     const handleBillItemModalOpen = () => {
         //reset tempBillItem
-        setTempBillItem({ name: `Item ${billItems.length + 1}`, price: 0, toSplit: false, shdPayByName: bill.people[0].name })
+        setTempBillItem({ name: `Item ${bill.billItems.length + 1}`, price: 0, toSplit: false, shdPayByName: bill.people[0].name })
         setTempBillItemError({ name: '', price: '', shdPayByName: '' })
         setBillItemModalOpen(true)
     }
@@ -74,8 +69,8 @@ const ItemSection = (props: { bill: Bill }) => {
         <>
             <Stack spacing={2}>
                 <Typography variant="h5">Bill Items</Typography>
-                {billItems.length == 0 && <div>No Items. Click the below button to add items</div>}
-                {billItems.length > 0 && billItems.map((billItem: BillItem, index: number) => (
+                {bill.billItems.length == 0 && <div>No Items. Click the below button to add items</div>}
+                {bill.billItems.length > 0 && bill.billItems.map((billItem: BillItem, index: number) => (
                     <div key={index}>
                         #{index + 1} : {billItem.name} | ${billItem.price} | {billItem.toSplit || !billItem.shdPayByName ? `Will be splitted` : `Should pay by ${billItem.shdPayByName}`}
                     </div>
