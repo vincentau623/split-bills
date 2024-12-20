@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import { Container, Typography } from '@mui/material';
+import { Container, Link, Typography } from '@mui/material';
 import { Bill, BillItem, Person } from './models/main';
 import ItemSection from './components/ItemsSection';
 import FinalPaymentSection from './components/FinalPaymentSection';
@@ -90,9 +90,8 @@ function App() {
       <FinalPaymentSection taxRate={taxRate} />
       <hr />
       <PeopleSection />
-
-
-
+      <hr />
+      <Typography variant="overline" >Provided by <Link href="https://vincentwcau.com/">Vincent Au</Link></Typography>
     </Container>
   )
 }
