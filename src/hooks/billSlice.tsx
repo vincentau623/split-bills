@@ -9,7 +9,7 @@ const initialState: BillState = {
     value: {
         billItems: [],
         people: [{ name: 'A', shouldPay: 0, shouldReceive: 0, paid: false }],
-        finalPayment: { subTotal: 0, tax: 0, tips: 0, totalPrice: 0, finalPrice: 0, paidByName: 'A', },
+        finalPayment: { subTotal: 0, tax: 0, tips: 0, tipsToSplit: true, tipsPaidByName: '', totalPrice: 0, finalPaid: 0, paidByName: 'A', },
         resolved: false,
     },
 };

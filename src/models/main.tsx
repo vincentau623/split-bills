@@ -22,8 +22,10 @@ export interface FinalPayment {
     subTotal: number
     tax: number
     tips: number
+    tipsToSplit: boolean
+    tipsPaidByName: string // TODO: multiple people
     totalPrice: number
-    finalPrice: number
+    finalPaid: number
     paidByName: string // TODO: multiple people
 }
 

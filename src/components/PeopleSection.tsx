@@ -1,6 +1,6 @@
 import { Stack, Typography, Button, Modal, Box, TextField } from "@mui/material";
-import { Bill, Person } from "../models/main";
-import { useState } from "react";
+import { Person } from "../models/main";
+import { useEffect, useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 import { addPerson } from "../hooks/billSlice";
@@ -9,15 +9,24 @@ const PeopleSection = () => {
     const bill = useAppSelector((state) => state.bill.value)
     const dispatch = useAppDispatch()
 
+    const autogenName = String.fromCharCode(65 + bill.people.length); // auto generate name A, B, C, D, ...
+    const inititalPerson = { name: `${autogenName}`, shouldPay: 0, shouldReceive: 0, paid: false }
+
     const [personModalOpen, setPersonModalOpen] = useState<boolean>(false);
-    const [tempPerson, setTempPerson] = useState<Person>({ name: '', shouldPay: 0, shouldReceive: 0, paid: false });
+    const [tempPerson, setTempPerson] = useState<Person>(inititalPerson);
+
+    useEffect(() => {
+        console.log("bill.people", bill.people)
+    }, [bill.people])
 
     // PERSON Actions
+    const handleTempPersonNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setTempPerson({ ...tempPerson, name: event.target.value })
+    }
     // handle add person
     const handleAddPerson = () => {
-        const autogenName = String.fromCharCode(65 + bill.people.length); // auto generate name A, B, C, D, ...
-        const newPerson = { name: `${autogenName}`, shouldPay: 0, shouldReceive: 0, paid: false }
-        dispatch(addPerson(newPerson))
+        dispatch(addPerson(tempPerson))
+        setPersonModalOpen(false)
     }
     // handle delete person
     const handleDeletePerson = (person: Person) => {
@@ -41,7 +50,9 @@ const PeopleSection = () => {
             <Stack spacing={2}>
                 <Typography variant="h5">People</Typography>
                 {bill.people.map((person: Person, index: number) => (
-                    <div key={index}>#{index + 1} : {person.name} | Pay ${person.shouldPay.toFixed(2)} | Receive ${person.shouldReceive.toFixed(2)} | Paid {person.paid ? 'Yes' : 'No'}</div>
+                    <div key={index}>#{index + 1} : {person.name} | Pay ${person.shouldPay.toFixed(2)} | Receive ${person.shouldReceive.toFixed(2)}
+                        {/* | Paid {person.paid ? 'Yes' : 'No'} */}
+                    </div>
                 ))}
                 <Button variant="contained" onClick={() => setPersonModalOpen(true)}>Add New Person</Button>
             </Stack>
@@ -56,7 +67,8 @@ const PeopleSection = () => {
                         <Typography id="people-modal-title" variant="h5">
                             Person
                         </Typography>
-                        <TextField id="people-name" label="Name" variant="filled" />
+                        <TextField id="people-name" label="Name" variant="filled" value={tempPerson.name}
+                            onChange={handleTempPersonNameChange} />
                         <Button variant="contained" onClick={handleAddPerson}>Add Person</Button>
                         <Button variant="contained" onClick={handlePersonModalClose}>Close</Button>
                     </Stack>

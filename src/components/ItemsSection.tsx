@@ -1,6 +1,6 @@
-import { Stack, Typography, Button, Modal, Box, TextField, FormControl, InputLabel, Select, MenuItem, FormHelperText, SelectChangeEvent } from "@mui/material";
-import { Bill, BillItem, BillItemError, Person } from "../models/main";
-import { useState } from "react";
+import { Stack, Typography, Button, Modal, Box, TextField, FormControl, InputLabel, Select, MenuItem, FormHelperText, SelectChangeEvent, FormControlLabel, Checkbox } from "@mui/material";
+import { BillItem, BillItemError, Person } from "../models/main";
+import React, { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 import { addBillItem } from "../hooks/billSlice";
@@ -9,10 +9,13 @@ const ItemSection = () => {
     const bill = useAppSelector((state) => state.bill.value)
     const dispatch = useAppDispatch()
 
-    const [billItemModalOpen, setBillItemModalOpen] = useState<boolean>(false);
-    const [tempBillItem, setTempBillItem] = useState<BillItem>({ name: `Item ${bill.billItems.length + 1}`, price: 0, toSplit: false, shdPayByName: bill.people[0].name });
-    const [tempBillItemError, setTempBillItemError] = useState<BillItemError>({ name: '', price: '', shdPayByName: '' });
+    const initialBillItem: BillItem = { name: `Item ${bill.billItems.length + 1}`, price: 0, toSplit: true, shdPayByName: '' }
+    const inititalBillItemError: BillItemError = { name: '', price: '', shdPayByName: '' }
 
+    const [tempBillItem, setTempBillItem] = useState<BillItem>(initialBillItem);
+    const [tempBillItemError, setTempBillItemError] = useState<BillItemError>(inititalBillItemError);
+
+    const [billItemModalOpen, setBillItemModalOpen] = useState<boolean>(false);
 
     // BILL ITEMS ACTIONS
     // handle add bill item
@@ -48,17 +51,17 @@ const ItemSection = () => {
 
     const handleBillItemModalOpen = () => {
         //reset tempBillItem
-        setTempBillItem({ name: `Item ${bill.billItems.length + 1}`, price: 0, toSplit: false, shdPayByName: bill.people[0].name })
-        setTempBillItemError({ name: '', price: '', shdPayByName: '' })
+        setTempBillItem(initialBillItem)
+        setTempBillItemError(inititalBillItemError)
         setBillItemModalOpen(true)
     }
 
+    const handleToSplitCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setTempBillItem({ ...tempBillItem, toSplit: event.target.checked, shdPayByName: event.target.checked ? '' : bill.people[0].name })
+    }
 
     const handleBillItemshdPayByNameChange = (event: SelectChangeEvent) => {
-        // const selectedPerson = people.find((person: Person) => person.name === event.target.value as string)
-        // if (selectedPerson) {
-        // }
-        setTempBillItem({ ...tempBillItem, shdPayByName: event.target.value as string })
+        setTempBillItem({ ...tempBillItem, shdPayByName: event.target.value })
     }
 
     const handleBillItemModalClose = () => {
@@ -72,7 +75,7 @@ const ItemSection = () => {
                 {bill.billItems.length == 0 && <div>No Items. Click the below button to add items</div>}
                 {bill.billItems.length > 0 && bill.billItems.map((billItem: BillItem, index: number) => (
                     <div key={index}>
-                        #{index + 1} : {billItem.name} | ${billItem.price} | {billItem.toSplit || !billItem.shdPayByName ? `Will be splitted` : `Should pay by ${billItem.shdPayByName}`}
+                        #{index + 1} : {billItem.name} | ${billItem.price.toFixed(2)} | {billItem.toSplit || !billItem.shdPayByName ? `Will be splitted` : `Pay by ${billItem.shdPayByName}`}
                     </div>
                 ))}
                 <Button variant="contained" onClick={handleBillItemModalOpen}>Add New Item</Button>
@@ -90,7 +93,7 @@ const ItemSection = () => {
                         </Typography>
                         <TextField
                             id="billItem-name"
-                            label="Name"
+                            label="Item name"
                             variant="filled"
                             error={tempBillItemError.name !== ''}
                             helperText={tempBillItemError.name}
@@ -109,22 +112,34 @@ const ItemSection = () => {
                             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                                 setTempBillItem({ ...tempBillItem, price: parseFloat(event.target.value) })
                             }} />
-                        <FormControl variant="filled" error={tempBillItemError.shdPayByName !== ''}>
-                            <InputLabel id="demo-simple-select-filled-label">Paid By</InputLabel>
-                            <Select
-                                variant="filled"
-                                labelId="demo-simple-select-label"
-                                id="demo-simple-select"
-                                value={tempBillItem.shdPayByName}
-                                label="Paid By"
-                                onChange={handleBillItemshdPayByNameChange}
-                            >
-                                {bill.people.map((person: Person, index: number) => (
-                                    <MenuItem key={index} value={person.name}>{person.name}</MenuItem>
-                                ))}
-                            </Select>
-                            {tempBillItemError.shdPayByName !== '' && <FormHelperText id="component-error-text">{tempBillItemError.shdPayByName}</FormHelperText>}
-                        </FormControl>
+                        <Stack direction="row" sx={{
+                            justifyContent: "flex-start",
+                            alignItems: "center",
+                        }}
+                        >
+                            <FormControlLabel control={
+                                <Checkbox checked={tempBillItem.toSplit} onChange={handleToSplitCheckbox} />
+                            } label="To split" />
+                            {!tempBillItem.toSplit &&
+                                <FormControl sx={{ minWidth: '150px' }} variant="filled" error={tempBillItemError.shdPayByName !== ''}>
+                                    <InputLabel id="demo-simple-select-filled-label">Pay By</InputLabel>
+                                    <Select
+                                        variant="filled"
+                                        labelId="demo-simple-select-label"
+                                        id="demo-simple-select"
+                                        value={tempBillItem.shdPayByName}
+                                        label="Paid By"
+                                        onChange={handleBillItemshdPayByNameChange}
+                                        disabled={tempBillItem.toSplit}
+                                    >
+                                        {bill.people.map((person: Person, index: number) => (
+                                            <MenuItem key={index} value={person.name}>{person.name}</MenuItem>
+                                        ))}
+                                    </Select>
+                                    {tempBillItemError.shdPayByName !== '' && <FormHelperText id="component-error-text">{tempBillItemError.shdPayByName}</FormHelperText>}
+                                </FormControl>
+                            }
+                        </Stack>
                         <Button variant="contained" onClick={handleAddBillItem}>Add</Button>
                         <Button variant="contained" onClick={handleBillItemModalClose}>Close</Button>
                     </Stack>
