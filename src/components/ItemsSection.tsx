@@ -41,13 +41,13 @@ const ItemSection = () => {
     }
 
     // handle delete bill item
-    const handleDeleteBillItem = (billItem: BillItem) => {
+    // const handleDeleteBillItem = (billItem: BillItem) => {
 
-    }
+    // }
     // mark paid by person
-    const handleMarkPaidPerson = (person: Person) => {
+    // const handleMarkPaidPerson = (person: Person) => {
 
-    }
+    // }
 
     const handleBillItemModalOpen = () => {
         //reset tempBillItem

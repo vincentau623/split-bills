@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 import { Container, Link, Typography } from '@mui/material';
-import { Bill, BillItem, Person } from './models/main';
+import { BillItem, Person } from './models/main';
 import ItemSection from './components/ItemsSection';
 import FinalPaymentSection from './components/FinalPaymentSection';
 import PeopleSection from './components/PeopleSection';
@@ -10,8 +10,8 @@ import { updateFinalPayment, updatePerson } from './hooks/billSlice';
 
 
 function App() {
-  const [taxRate, setTaxRate] = useState<number>(0.13);
-
+  // const [taxRate, setTaxRate] = useState<number>(0.13);
+  const taxRate = 0.13
   const bill = useAppSelector((state) => state.bill.value)
   const dispatch = useAppDispatch()
 
@@ -75,9 +75,9 @@ function App() {
   }, [bill.billItems, bill.people.length, bill.finalPayment.tips, bill.finalPayment.finalPaid])
 
   // save the bill to local storage
-  const saveBill = () => {
+  // const saveBill = () => {
 
-  }
+  // }
 
   // MODAL Actions
 

@@ -29,18 +29,19 @@ const PeopleSection = () => {
         setPersonModalOpen(false)
     }
     // handle delete person
-    const handleDeletePerson = (person: Person) => {
+    // const handleDeletePerson = (person: Person) => {
 
-    }
+    // }
 
     // handle rename person
-    const handleRenamePerson = (person: Person, newName: string) => {
+    // const handleRenamePerson = (person: Person, newName: string) => {
 
-    }
+    // }
+
     // handle person paid change
-    const handlePaidChange = (person: Person) => {
+    // const handlePaidChange = (person: Person) => {
 
-    }
+    // }
 
     const handlePersonModalClose = () => {
         setPersonModalOpen(false);
