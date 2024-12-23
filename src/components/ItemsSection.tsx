@@ -19,8 +19,9 @@ import { BillItem, BillItemError, Person } from "../models/main";
 import React, { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
-import { addBillItem } from "../hooks/billSlice";
+import { addBillItem, removeBillItem } from "../hooks/billSlice";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const ItemSection = () => {
     const bill = useAppSelector((state) => state.bill.value);
@@ -77,14 +78,22 @@ const ItemSection = () => {
         } else {
             dispatch(addBillItem(tempBillItem));
             // setBillItems([...billItems, tempBillItem])
-            setBillItemModalOpen(false);
+            handleBillItemModalClose();
         }
     };
 
-    // handle delete bill item
-    // const handleDeleteBillItem = (billItem: BillItem) => {
+    // handle edit Bill Item
+    const handleEditBillItem = (billItem: BillItem) => {
+        // set tempBillItem
+        setTempBillItem(billItem);
+        setBillItemModalOpen(true);
+    };
 
-    // }
+    // handle delete bill item
+    const handleDeleteBillItem = (index: number) => {
+        dispatch(removeBillItem(index));
+    };
+
     // mark paid by person
     // const handleMarkPaidPerson = (person: Person) => {
 
@@ -92,8 +101,6 @@ const ItemSection = () => {
 
     const handleBillItemModalOpen = () => {
         //reset tempBillItem
-        setTempBillItem(initialBillItem);
-        setTempBillItemError(inititalBillItemError);
         setBillItemModalOpen(true);
     };
 
@@ -112,6 +119,8 @@ const ItemSection = () => {
     };
 
     const handleBillItemModalClose = () => {
+        setTempBillItem(initialBillItem);
+        setTempBillItemError(inititalBillItemError);
         setBillItemModalOpen(false);
     };
 
@@ -129,12 +138,24 @@ const ItemSection = () => {
                             {billItem.price.toFixed(2)} |{" "}
                             {billItem.toSplit || !billItem.shdPayByName
                                 ? `Will be splitted`
-                                : `Pay by ${billItem.shdPayByName}`}
+                                : `Pay by ${billItem.shdPayByName}`}{" "}
+                            |
                             <IconButton
                                 color="primary"
-                                aria-label="add to shopping cart"
+                                aria-label="edit item"
+                                size="small"
+                                onClick={() => handleEditBillItem(billItem)}
                             >
-                                <EditIcon />
+                                <EditIcon fontSize="inherit" />
+                            </IconButton>
+                            |
+                            <IconButton
+                                color="error"
+                                aria-label="delete item"
+                                size="small"
+                                onClick={() => handleDeleteBillItem(index)}
+                            >
+                                <DeleteIcon fontSize="inherit" />
                             </IconButton>
                         </div>
                     ))}
