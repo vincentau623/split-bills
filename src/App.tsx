@@ -9,10 +9,19 @@ import { useAppDispatch, useAppSelector } from "./hooks/hooks";
 import { updateFinalPayment, updatePerson } from "./hooks/billSlice";
 
 function App() {
-    // const [taxRate, setTaxRate] = useState<number>(0.13);
-    const taxRate = 0.13;
     const bill = useAppSelector((state) => state.bill.value);
     const dispatch = useAppDispatch();
+
+    // init bill from local storage
+    useEffect(() => {
+        const taxRate = localStorage.getItem("taxRate");
+        dispatch(
+            updateFinalPayment({
+                ...bill.finalPayment,
+                taxRate: taxRate ? parseFloat(taxRate) : 0,
+            })
+        );
+    }, []);
 
     // calculate split bills (including adding tax)
     const calculateSplitBills = () => {
@@ -24,7 +33,7 @@ function App() {
         const subTotal = bill.billItems
             .map((billItem: BillItem) => billItem.price)
             .reduce((a, b) => a + b);
-        const tax = subTotal * taxRate;
+        const tax = subTotal * bill.finalPayment.taxRate;
         const totalPrice = subTotal + tax;
         // if tip or final paid is set, update
         let tips = bill.finalPayment.tips;
@@ -87,6 +96,7 @@ function App() {
     }, [
         bill.billItems,
         bill.people.length,
+        bill.finalPayment.taxRate,
         bill.finalPayment.tips,
         bill.finalPayment.finalPaid,
     ]);
@@ -104,7 +114,7 @@ function App() {
             <hr />
             <ItemSection />
             <hr />
-            <FinalPaymentSection taxRate={taxRate} />
+            <FinalPaymentSection />
             <hr />
             <PeopleSection />
             <hr />

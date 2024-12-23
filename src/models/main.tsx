@@ -20,6 +20,7 @@ export interface BillItemError {
 
 export interface FinalPayment {
     subTotal: number;
+    taxRate: number;
     tax: number;
     tips: number;
     tipsToSplit: boolean;

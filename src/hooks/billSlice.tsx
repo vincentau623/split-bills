@@ -11,6 +11,7 @@ const initialState: BillState = {
         people: [{ name: "A", shouldPay: 0, shouldReceive: 0, paid: false }],
         finalPayment: {
             subTotal: 0,
+            taxRate: 0,
             tax: 0,
             tips: 0,
             tipsToSplit: true,
