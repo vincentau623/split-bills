@@ -1,16 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import { Container, Link, Typography } from "@mui/material";
+import { Button, Container, Link, Typography } from "@mui/material";
 import { BillItem, Person } from "./models/main";
 import ItemSection from "./components/ItemsSection";
 import FinalPaymentSection from "./components/FinalPaymentSection";
 import PeopleSection from "./components/PeopleSection";
 import { useAppDispatch, useAppSelector } from "./hooks/hooks";
-import { updateFinalPayment, updatePerson } from "./hooks/billSlice";
+import { updateFinalPayment, updatePerson, clearBill } from "./hooks/billSlice";
+import ConfirmDialog from "./components/ConfirmDialog";
 
 function App() {
     const bill = useAppSelector((state) => state.bill.value);
     const dispatch = useAppDispatch();
+    const [resetDialogOpen, setResetDialogOpen] = useState<boolean>(false);
 
     // init bill from local storage
     useEffect(() => {
@@ -77,7 +79,6 @@ function App() {
             if (person.name === bill.finalPayment.tipsPaidByName) {
                 shdPay += tips;
             }
-            console.log(person.name, shdPay);
             let updatedPerson = {
                 ...person,
                 shouldPay: shdPay,
@@ -90,7 +91,6 @@ function App() {
                     shouldReceive: finalPayment.finalPaid - shdPay,
                 };
             }
-            console.log(updatedPerson);
             dispatch(updatePerson({ index, person: updatedPerson }));
         });
     };
@@ -106,12 +106,14 @@ function App() {
         bill.finalPayment.paidByName,
     ]);
 
-    // save the bill to local storage
-    // const saveBill = () => {
+    const handleResetButton = () => {
+        setResetDialogOpen(true);
+    };
 
-    // }
-
-    // MODAL Actions
+    const resetBill = () => {
+        dispatch(clearBill());
+        setResetDialogOpen(false);
+    };
 
     return (
         <Container maxWidth="sm">
@@ -123,10 +125,25 @@ function App() {
             <hr />
             <PeopleSection />
             <hr />
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={handleResetButton}
+            >
+                Reset
+            </Button>
+            <hr />
             <Typography variant="overline">
                 Provided by{" "}
                 <Link href="https://vincentwcau.com/">Vincent Au</Link>
             </Typography>
+            <ConfirmDialog
+                open={resetDialogOpen}
+                setOpen={setResetDialogOpen}
+                title="Reset Bill"
+                content="Are you sure to reset the bill?"
+                onConfirm={resetBill}
+            />
         </Container>
     );
 }

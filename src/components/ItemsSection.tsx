@@ -95,6 +95,7 @@ const ItemSection = () => {
                 shdPayByName: "Paid by should not be empty",
             };
         }
+        // if error, set error msg and return
         if (
             tempBillItemError.name !== "" ||
             tempBillItemError.price !== "" ||
@@ -112,7 +113,6 @@ const ItemSection = () => {
                     })
                 );
             }
-            // setBillItems([...billItems, tempBillItem])
             handleBillItemModalClose();
         }
     };
@@ -147,8 +147,7 @@ const ItemSection = () => {
                 {bill.billItems.length > 0 &&
                     bill.billItems.map((billItem: BillItem, index: number) => (
                         <div key={index}>
-                            {billItem.name} | $
-                            {billItem.price.toFixed(2)} |{" "}
+                            {billItem.name} | ${billItem.price.toFixed(2)} |{" "}
                             {billItem.toSplit || !billItem.shdPayByName
                                 ? `Will be splitted`
                                 : `Pay by ${billItem.shdPayByName}`}{" "}

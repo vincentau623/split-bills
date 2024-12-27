@@ -56,6 +56,9 @@ export const billSlice = createSlice({
         updateFinalPayment: (state, action: PayloadAction<FinalPayment>) => {
             state.value.finalPayment = action.payload;
         },
+        clearBill: (state) => {
+            state.value = initialState.value;
+        },
     },
 });
 
@@ -67,6 +70,7 @@ export const {
     removePerson,
     updatePerson,
     updateFinalPayment,
+    clearBill,
 } = billSlice.actions;
 
 export const selectBill = (state: { bill: BillState }) => state.bill.value;
