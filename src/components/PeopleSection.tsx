@@ -5,12 +5,15 @@ import {
     Modal,
     Box,
     TextField,
+    IconButton,
 } from "@mui/material";
 import { Person } from "../models/main";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
-import { addPerson } from "../hooks/billSlice";
+import { addPerson, removePerson, updatePerson } from "../hooks/billSlice";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const PeopleSection = () => {
     const bill = useAppSelector((state) => state.bill.value);
@@ -26,10 +29,8 @@ const PeopleSection = () => {
 
     const [personModalOpen, setPersonModalOpen] = useState<boolean>(false);
     const [tempPerson, setTempPerson] = useState<Person>(inititalPerson);
-
-    useEffect(() => {
-        console.log("bill.people", bill.people);
-    }, [bill.people]);
+    const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+    const [updatingPersonIndex, setUpdatingPersonIndex] = useState<number>(-1);
 
     // PERSON Actions
     const handleTempPersonNameChange = (
@@ -37,25 +38,37 @@ const PeopleSection = () => {
     ) => {
         setTempPerson({ ...tempPerson, name: event.target.value });
     };
+
     // handle add person
     const handleAddPerson = () => {
-        dispatch(addPerson(tempPerson));
-        setPersonModalOpen(false);
+        setTempPerson(inititalPerson);
+        setModalMode("add");
+        setPersonModalOpen(true);
     };
-    // handle delete person
-    // const handleDeletePerson = (person: Person) => {
-
-    // }
 
     // handle rename person
-    // const handleRenamePerson = (person: Person, newName: string) => {
+    const handleUpdatePerson = (person: Person, index: number) => {
+        setTempPerson(person);
+        setModalMode("edit");
+        setUpdatingPersonIndex(index);
+        setPersonModalOpen(true);
+    };
 
-    // }
+    // handle delete person
+    const handleDeletePerson = (index: number) => {
+        dispatch(removePerson(index));
+    };
 
-    // handle person paid change
-    // const handlePaidChange = (person: Person) => {
-
-    // }
+    const handlePersonModalSubmit = () => {
+        if (modalMode === "add") {
+            dispatch(addPerson(tempPerson));
+        } else if (modalMode === "edit") {
+            dispatch(
+                updatePerson({ person: tempPerson, index: updatingPersonIndex })
+            );
+        }
+        setPersonModalOpen(false);
+    };
 
     const handlePersonModalClose = () => {
         setPersonModalOpen(false);
@@ -68,14 +81,28 @@ const PeopleSection = () => {
                     <div key={index}>
                         #{index + 1} : {person.name} | Pay $
                         {person.shouldPay.toFixed(2)} | Receive $
-                        {person.shouldReceive.toFixed(2)}
-                        {/* | Paid {person.paid ? 'Yes' : 'No'} */}
+                        {person.shouldReceive.toFixed(2)}{" "}
+                        {/* | Paid {person.paid ? 'Yes' : 'No'} */}|
+                        <IconButton
+                            color="primary"
+                            aria-label="edit item"
+                            size="small"
+                            onClick={() => handleUpdatePerson(person, index)}
+                        >
+                            <EditIcon fontSize="inherit" />
+                        </IconButton>
+                        |
+                        <IconButton
+                            color="error"
+                            aria-label="delete item"
+                            size="small"
+                            onClick={() => handleDeletePerson(index)}
+                        >
+                            <DeleteIcon fontSize="inherit" />
+                        </IconButton>
                     </div>
                 ))}
-                <Button
-                    variant="contained"
-                    onClick={() => setPersonModalOpen(true)}
-                >
+                <Button variant="contained" onClick={handleAddPerson}>
                     Add New Person
                 </Button>
             </Stack>
@@ -98,7 +125,10 @@ const PeopleSection = () => {
                             value={tempPerson.name}
                             onChange={handleTempPersonNameChange}
                         />
-                        <Button variant="contained" onClick={handleAddPerson}>
+                        <Button
+                            variant="contained"
+                            onClick={handlePersonModalSubmit}
+                        >
                             Add Person
                         </Button>
                         <Button
