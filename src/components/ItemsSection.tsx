@@ -19,7 +19,11 @@ import { BillItem, BillItemError, Person } from "../models/main";
 import React, { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
-import { addBillItem, removeBillItem } from "../hooks/billSlice";
+import {
+    addBillItem,
+    removeBillItem,
+    updateBillItem,
+} from "../hooks/billSlice";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -43,12 +47,34 @@ const ItemSection = () => {
     const [tempBillItemError, setTempBillItemError] = useState<BillItemError>(
         inititalBillItemError
     );
-
     const [billItemModalOpen, setBillItemModalOpen] = useState<boolean>(false);
+    const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+    const [updatingBillItemIndex, setUpdatingBillItemIndex] =
+        useState<number>(-1);
 
     // BILL ITEMS ACTIONS
     // handle add bill item
     const handleAddBillItem = () => {
+        setTempBillItem(initialBillItem);
+        setModalMode("add");
+        setBillItemModalOpen(true);
+    };
+
+    // handle edit Bill Item
+    const handleEditBillItem = (billItem: BillItem, index: number) => {
+        // set tempBillItem
+        setTempBillItem(billItem);
+        setModalMode("edit");
+        setUpdatingBillItemIndex(index);
+        setBillItemModalOpen(true);
+    };
+
+    // handle delete bill item
+    const handleDeleteBillItem = (index: number) => {
+        dispatch(removeBillItem(index));
+    };
+
+    const handleBillItemModalSubmit = () => {
         // validate tempBillItem
         let tempBillItemError = { name: "", price: "", shdPayByName: "" };
         if (!tempBillItem.name || tempBillItem.name === "") {
@@ -76,32 +102,19 @@ const ItemSection = () => {
         ) {
             setTempBillItemError(tempBillItemError);
         } else {
-            dispatch(addBillItem(tempBillItem));
+            if (modalMode === "add") {
+                dispatch(addBillItem(tempBillItem));
+            } else if (modalMode === "edit") {
+                dispatch(
+                    updateBillItem({
+                        billItem: tempBillItem,
+                        index: updatingBillItemIndex,
+                    })
+                );
+            }
             // setBillItems([...billItems, tempBillItem])
             handleBillItemModalClose();
         }
-    };
-
-    // handle edit Bill Item
-    const handleEditBillItem = (billItem: BillItem) => {
-        // set tempBillItem
-        setTempBillItem(billItem);
-        setBillItemModalOpen(true);
-    };
-
-    // handle delete bill item
-    const handleDeleteBillItem = (index: number) => {
-        dispatch(removeBillItem(index));
-    };
-
-    // mark paid by person
-    // const handleMarkPaidPerson = (person: Person) => {
-
-    // }
-
-    const handleBillItemModalOpen = () => {
-        //reset tempBillItem
-        setBillItemModalOpen(true);
     };
 
     const handleToSplitCheckbox = (
@@ -144,7 +157,9 @@ const ItemSection = () => {
                                 color="primary"
                                 aria-label="edit item"
                                 size="small"
-                                onClick={() => handleEditBillItem(billItem)}
+                                onClick={() =>
+                                    handleEditBillItem(billItem, index)
+                                }
                             >
                                 <EditIcon fontSize="inherit" />
                             </IconButton>
@@ -159,7 +174,7 @@ const ItemSection = () => {
                             </IconButton>
                         </div>
                     ))}
-                <Button variant="contained" onClick={handleBillItemModalOpen}>
+                <Button variant="contained" onClick={handleAddBillItem}>
                     Add New Item
                 </Button>
             </Stack>
@@ -265,7 +280,10 @@ const ItemSection = () => {
                                 </FormControl>
                             )}
                         </Stack>
-                        <Button variant="contained" onClick={handleAddBillItem}>
+                        <Button
+                            variant="contained"
+                            onClick={handleBillItemModalSubmit}
+                        >
                             Add
                         </Button>
                         <Button
