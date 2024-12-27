@@ -75,11 +75,11 @@ const PeopleSection = () => {
     };
     return (
         <>
-            <Stack spacing={2}>
+            <Stack spacing={1}>
                 <Typography variant="h5">People</Typography>
                 {bill.people.map((person: Person, index: number) => (
                     <div key={index}>
-                        #{index + 1} : {person.name} | Pay $
+                        {person.name} | Pay $
                         {person.shouldPay.toFixed(2)} | Receive $
                         {person.shouldReceive.toFixed(2)}{" "}
                         {/* | Paid {person.paid ? 'Yes' : 'No'} */}|

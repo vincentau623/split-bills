@@ -130,7 +130,7 @@ const FinalPaymentSection = () => {
 
     return (
         <>
-            <Stack spacing={2}>
+            <Stack spacing={1}>
                 <div>Subtotal: ${bill.finalPayment.subTotal.toFixed(2)}</div>
                 <div>
                     Tax: ${bill.finalPayment.tax.toFixed(2)} (

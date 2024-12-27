@@ -139,7 +139,7 @@ const ItemSection = () => {
 
     return (
         <>
-            <Stack spacing={2}>
+            <Stack spacing={1}>
                 <Typography variant="h5">Bill Items</Typography>
                 {bill.billItems.length == 0 && (
                     <div>No Items. Click the below button to add items</div>
@@ -147,7 +147,7 @@ const ItemSection = () => {
                 {bill.billItems.length > 0 &&
                     bill.billItems.map((billItem: BillItem, index: number) => (
                         <div key={index}>
-                            #{index + 1} : {billItem.name} | $
+                            {billItem.name} | $
                             {billItem.price.toFixed(2)} |{" "}
                             {billItem.toSplit || !billItem.shdPayByName
                                 ? `Will be splitted`
