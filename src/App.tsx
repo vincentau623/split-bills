@@ -78,7 +78,11 @@ function App() {
                 shdPay += tips;
             }
             console.log(person.name, shdPay);
-            let updatedPerson = { ...person, shouldPay: shdPay };
+            let updatedPerson = {
+                ...person,
+                shouldPay: shdPay,
+                shouldReceive: 0,
+            };
             if (person.name === bill.finalPayment.paidByName) {
                 updatedPerson = {
                     ...updatedPerson,
@@ -99,6 +103,7 @@ function App() {
         bill.finalPayment.taxRate,
         bill.finalPayment.tips,
         bill.finalPayment.finalPaid,
+        bill.finalPayment.paidByName,
     ]);
 
     // save the bill to local storage

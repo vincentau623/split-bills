@@ -316,7 +316,7 @@ const FinalPaymentSection = () => {
                                 variant="filled"
                                 labelId="demo-simple-select-label"
                                 id="demo-simple-select"
-                                value={bill.finalPayment.paidByName}
+                                value={tempFinalPayment.paidByName}
                                 label="Paid By"
                                 onChange={handlePaidByChange}
                             >
