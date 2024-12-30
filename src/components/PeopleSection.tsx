@@ -79,9 +79,8 @@ const PeopleSection = () => {
                 <Typography variant="h5">People</Typography>
                 {bill.people.map((person: Person, index: number) => (
                     <div key={index}>
-                        {person.name} | Pay $
-                        {person.shouldPay.toFixed(2)} | Receive $
-                        {person.shouldReceive.toFixed(2)}{" "}
+                        {person.name} | Pay ${person.shouldPay.toFixed(2)} |
+                        Receive ${person.shouldReceive.toFixed(2)}{" "}
                         {/* | Paid {person.paid ? 'Yes' : 'No'} */}|
                         <IconButton
                             color="primary"
@@ -129,7 +128,9 @@ const PeopleSection = () => {
                             variant="contained"
                             onClick={handlePersonModalSubmit}
                         >
-                            Add Person
+                            {modalMode === "edit"
+                                ? "Edit Person"
+                                : "Add Person"}
                         </Button>
                         <Button
                             variant="contained"
