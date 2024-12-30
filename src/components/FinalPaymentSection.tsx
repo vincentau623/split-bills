@@ -12,7 +12,6 @@ import {
     SelectChangeEvent,
     FormControlLabel,
     Checkbox,
-    IconButton,
     InputAdornment,
 } from "@mui/material";
 import { useState } from "react";
@@ -20,7 +19,6 @@ import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 import { FinalPayment, Person } from "../models/main";
 import { updateFinalPayment } from "../hooks/billSlice";
-import EditIcon from "@mui/icons-material/Edit";
 
 const FinalPaymentSection = () => {
     const bill = useAppSelector((state) => state.bill.value);
@@ -32,17 +30,26 @@ const FinalPaymentSection = () => {
 
     const initialTaxRate = bill.finalPayment.taxRate * 100;
     const [tempTaxRate, setTempTaxRate] = useState<number>(initialTaxRate);
+    const [tempDiscount, setTempDiscount] = useState<number>(
+        bill.finalPayment.discount
+    );
+
     const [finalPaymedntModalOpen, setFinalPaymentModalOpen] =
         useState<boolean>(false);
-
-    const [taxModalOpen, setTaxModalOpen] = useState<boolean>(false);
+    const [billModalOpen, setBillModalOpen] = useState<boolean>(false);
 
     const handleFinalPaymentModalOpen = () => {
         setTempFinalPayment(bill.finalPayment);
         setFinalPaymentModalOpen(true);
     };
 
-    // TAX Actions
+    // Edit Bill Actions
+
+    const handleDiscountChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setTempDiscount(parseFloat(event.target.value));
+    };
 
     const handleTaxRateChange = (
         event: React.ChangeEvent<HTMLInputElement>
@@ -50,20 +57,21 @@ const FinalPaymentSection = () => {
         setTempTaxRate(parseFloat(event.target.value));
     };
 
-    const handleUpdateTaxRate = () => {
+    const handleUpdateBill = () => {
         dispatch(
             updateFinalPayment({
                 ...bill.finalPayment,
+                discount: tempDiscount,
                 taxRate: tempTaxRate / 100,
             })
         );
         // also save to local storage
         localStorage.setItem("taxRate", JSON.stringify(tempTaxRate / 100));
-        setTaxModalOpen(false);
+        setBillModalOpen(false);
     };
 
-    const handleTaxModalClose = () => {
-        setTaxModalOpen(false);
+    const handleBillModalClose = () => {
+        setBillModalOpen(false);
     };
 
     // FINAL PAYMENT Actions
@@ -132,21 +140,20 @@ const FinalPaymentSection = () => {
         <>
             <Stack spacing={1}>
                 <div>Subtotal: ${bill.finalPayment.subTotal.toFixed(2)}</div>
+                <div>Discount: ${bill.finalPayment.discount.toFixed(2)}</div>
                 <div>
                     Tax: ${bill.finalPayment.tax.toFixed(2)} (
                     {bill.finalPayment.taxRate * 100}%)
-                    <IconButton
-                        color="primary"
-                        aria-label="edit item"
-                        size="small"
-                        onClick={() => setTaxModalOpen(true)}
-                    >
-                        <EditIcon fontSize="inherit" />
-                    </IconButton>
                 </div>
                 <div>
                     Total Price: ${bill.finalPayment.totalPrice.toFixed(2)}
                 </div>
+                <Button
+                    variant="contained"
+                    onClick={() => setBillModalOpen(true)}
+                >
+                    Edit Bill
+                </Button>
                 <hr />
                 <Typography variant="h5">Final Payment</Typography>
                 <div>
@@ -165,13 +172,61 @@ const FinalPaymentSection = () => {
                     Edit Final Payment
                 </Button>
             </Stack>
-            {/* Tax Modal */}
-            <Modal open={taxModalOpen} onClose={handleTaxModalClose}>
+            {/* Bill Modal */}
+            <Modal open={billModalOpen} onClose={handleBillModalClose}>
                 <Box sx={modalBoxStyle}>
                     <Stack spacing={2}>
-                        <Typography id="tax-modal-title" variant="h5">
-                            Tax
+                        <Typography id="bill-modal-title" variant="h5">
+                            Bill
                         </Typography>
+                        <TextField
+                            id="discount-rate"
+                            label="Discount"
+                            variant="filled"
+                            type="number"
+                            value={tempDiscount}
+                            onChange={handleDiscountChange}
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            %
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
+                        />
+                        <Stack direction="row" spacing={1}>
+                            <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => setTempDiscount(0)}
+                            >
+                                0%
+                            </Button>
+                            <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() =>
+                                    setTempDiscount(
+                                        bill.finalPayment.subTotal * 0.05
+                                    )
+                                }
+                            >
+                                5%
+                            </Button>
+                            <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() =>
+                                    setTempDiscount(
+                                        bill.finalPayment.subTotal * 0.1
+                                    )
+                                }
+                            >
+                                10%
+                            </Button>
+                        </Stack>
                         <TextField
                             id="tax-rate"
                             label="Tax Rate"
@@ -212,15 +267,12 @@ const FinalPaymentSection = () => {
                                 13% (ON)
                             </Button>
                         </Stack>
-                        <Button
-                            variant="contained"
-                            onClick={handleUpdateTaxRate}
-                        >
+                        <Button variant="contained" onClick={handleUpdateBill}>
                             Update
                         </Button>
                         <Button
                             variant="contained"
-                            onClick={handleTaxModalClose}
+                            onClick={handleBillModalClose}
                         >
                             Close
                         </Button>

@@ -283,7 +283,7 @@ const ItemSection = () => {
                             variant="contained"
                             onClick={handleBillItemModalSubmit}
                         >
-                            Add
+                            {modalMode === "edit" ? "Edit Item" : "Add Item"}
                         </Button>
                         <Button
                             variant="contained"
