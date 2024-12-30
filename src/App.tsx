@@ -35,8 +35,9 @@ function App() {
         const subTotal = bill.billItems
             .map((billItem: BillItem) => billItem.price)
             .reduce((a, b) => a + b);
-        const tax = subTotal * bill.finalPayment.taxRate;
-        const totalPrice = subTotal + tax;
+        const discountedPrice = subTotal - bill.finalPayment.discount;
+        const tax = discountedPrice * bill.finalPayment.taxRate;
+        const totalPrice = discountedPrice + tax;
         // if tip or final paid is set, update
         let tips = bill.finalPayment.tips;
         if (bill.finalPayment.finalPaid) {
@@ -52,6 +53,7 @@ function App() {
         };
         dispatch(updateFinalPayment(finalPayment));
 
+        const discountRatio = 1 - bill.finalPayment.discount / subTotal;
         const avgTax = tax / bill.people.length;
         // handle tips calculation
         let avgTips = tips / bill.people.length;
@@ -66,9 +68,12 @@ function App() {
                 bill.billItems
                     .map((billItem: BillItem) => {
                         if (billItem.toSplit) {
-                            return billItem.price / bill.people.length;
+                            return (
+                                (billItem.price * discountRatio) /
+                                bill.people.length
+                            );
                         } else if (billItem.shdPayByName === person.name) {
-                            return billItem.price;
+                            return billItem.price * discountRatio;
                         } else {
                             return 0;
                         }
@@ -100,8 +105,10 @@ function App() {
     }, [
         bill.billItems,
         bill.people.length,
+        bill.finalPayment.discount,
         bill.finalPayment.taxRate,
         bill.finalPayment.tips,
+        bill.finalPayment.tipsToSplit,
         bill.finalPayment.finalPaid,
         bill.finalPayment.paidByName,
     ]);
