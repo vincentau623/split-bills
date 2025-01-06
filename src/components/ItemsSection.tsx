@@ -14,6 +14,7 @@ import {
     FormControlLabel,
     Checkbox,
     IconButton,
+    InputAdornment,
 } from "@mui/material";
 import { BillItem, BillItemError, Person } from "../models/main";
 import React, { useState } from "react";
@@ -220,6 +221,15 @@ const ItemSection = () => {
                                     ...tempBillItem,
                                     price: parseFloat(event.target.value),
                                 });
+                            }}
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            $
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
                         />
                         <Stack
