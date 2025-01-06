@@ -53,37 +53,62 @@ function App() {
         };
         dispatch(updateFinalPayment(finalPayment));
 
-        const discountRatio = 1 - bill.finalPayment.discount / subTotal;
+        // calculate people's shouldPay and shouldReceive
+        // go through each item, calculate how much each person should pay
+        // also check if tips is paid by someone
+
+        // handle tax calculation
         const avgTax = tax / bill.people.length;
         // handle tips calculation
         let avgTips = tips / bill.people.length;
         if (!finalPayment.tipsToSplit) {
             avgTips = 0;
         }
-        // calculate people's shouldPay and shouldReceive
-        // go through each item, calculate how much each person should pay
-        // also check if tips is paid by someone
         bill.people.map((person: Person, index: number) => {
-            let shdPay =
-                bill.billItems
-                    .map((billItem: BillItem) => {
-                        if (billItem.toSplit) {
-                            return (
-                                (billItem.price * discountRatio) /
-                                bill.people.length
-                            );
-                        } else if (billItem.shdPayByName === person.name) {
-                            return billItem.price * discountRatio;
-                        } else {
-                            return 0;
-                        }
-                    })
-                    .reduce((a, b) => a + b) +
-                avgTax +
-                avgTips;
-            if (person.name === bill.finalPayment.tipsPaidByName) {
+            let shdPay = 0;
+            const itemSum = bill.billItems
+                .map((billItem: BillItem) => {
+                    if (billItem.toSplit) {
+                        return billItem.price / bill.people.length;
+                    } else if (billItem.shdPayByName === person.name) {
+                        return billItem.price;
+                    } else {
+                        return 0;
+                    }
+                })
+                .reduce((a, b) => a + b);
+            shdPay += itemSum;
+
+            // add discount
+            if (bill.finalPayment.discount !== 0) {
+                const discountRatio = bill.finalPayment.discount / subTotal;
+                shdPay -= itemSum * discountRatio; // use pre-tax price to calculate discount
+            }
+            // add tax
+            if (tax != 0 && bill.finalPayment.taxSplitMode === "byItem") {
+                const taxRatio = tax / subTotal;
+                shdPay += itemSum * taxRatio; // use pre-tax price to calculate tax
+            } else {
+                shdPay += avgTax;
+            }
+            // add tips
+            if (
+                !bill.finalPayment.tipsToSplit &&
+                person.name === bill.finalPayment.tipsPaidByName
+            ) {
                 shdPay += tips;
             }
+            if (
+                bill.finalPayment.tipsToSplit &&
+                tips != 0 &&
+                bill.finalPayment.tipsSplitMode === "byItem"
+            ) {
+                const tipsRatio = tips / totalPrice;
+                shdPay += shdPay * tipsRatio; // use after tax price to calculate tips
+            } else {
+                shdPay += avgTips;
+            }
+            // update person
             let updatedPerson = {
                 ...person,
                 shouldPay: shdPay,
@@ -92,7 +117,6 @@ function App() {
             if (person.name === bill.finalPayment.paidByName) {
                 updatedPerson = {
                     ...updatedPerson,
-                    // shouldPay: shdPay - finalPayment.finalPaid < 0 ? 0 : shdPay - finalPayment.finalPaid,
                     shouldReceive: finalPayment.finalPaid - shdPay,
                 };
             }
@@ -107,8 +131,10 @@ function App() {
         bill.people.length,
         bill.finalPayment.discount,
         bill.finalPayment.taxRate,
+        bill.finalPayment.taxSplitMode,
         bill.finalPayment.tips,
         bill.finalPayment.tipsToSplit,
+        bill.finalPayment.tipsSplitMode,
         bill.finalPayment.finalPaid,
         bill.finalPayment.paidByName,
     ]);

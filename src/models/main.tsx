@@ -23,8 +23,10 @@ export interface FinalPayment {
     discount: number;
     taxRate: number;
     tax: number;
+    taxSplitMode: string; // evenly or byItem
     tips: number;
-    tipsToSplit: boolean;
+    tipsToSplit: boolean; 
+    tipsSplitMode: string; // evenly or byItem
     tipsPaidByName: string; // TODO: multiple people
     totalPrice: number;
     finalPaid: number;

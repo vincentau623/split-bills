@@ -14,6 +14,8 @@ import {
     Checkbox,
     InputAdornment,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
+
 import { useState } from "react";
 import { modalBoxStyle } from "../styles/main";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
@@ -30,25 +32,35 @@ const FinalPaymentSection = () => {
 
     const initialTaxRate = bill.finalPayment.taxRate * 100;
     const [tempTaxRate, setTempTaxRate] = useState<number>(initialTaxRate);
-    const [tempDiscount, setTempDiscount] = useState<number>(
-        bill.finalPayment.discount
-    );
+    // const [tempDiscount, setTempDiscount] = useState<number>(
+    //     bill.finalPayment.discount
+    // );
 
     const [finalPaymedntModalOpen, setFinalPaymentModalOpen] =
         useState<boolean>(false);
     const [billModalOpen, setBillModalOpen] = useState<boolean>(false);
 
-    const handleFinalPaymentModalOpen = () => {
-        setTempFinalPayment(bill.finalPayment);
-        setFinalPaymentModalOpen(true);
-    };
-
     // Edit Bill Actions
+    const handleBillModalOpen = () => {
+        setTempFinalPayment(bill.finalPayment);
+        setTempTaxRate(initialTaxRate);
+        setBillModalOpen(true);
+    };
 
     const handleDiscountChange = (
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
-        setTempDiscount(parseFloat(event.target.value));
+        setTempFinalPayment({
+            ...tempFinalPayment,
+            discount: parseFloat(event.target.value),
+        });
+    };
+
+    const updateTempDiscount = (discount: number) => {
+        setTempFinalPayment({
+            ...tempFinalPayment,
+            discount: discount,
+        });
     };
 
     const handleTaxRateChange = (
@@ -57,12 +69,20 @@ const FinalPaymentSection = () => {
         setTempTaxRate(parseFloat(event.target.value));
     };
 
+    const handleTaxsSplitModeChange = (event: SelectChangeEvent) => {
+        setTempFinalPayment({
+            ...tempFinalPayment,
+            taxSplitMode: event.target.value,
+        });
+    };
+
     const handleUpdateBill = () => {
         dispatch(
             updateFinalPayment({
                 ...bill.finalPayment,
-                discount: tempDiscount,
+                discount: tempFinalPayment.discount,
                 taxRate: tempTaxRate / 100,
+                taxSplitMode: tempFinalPayment.taxSplitMode,
             })
         );
         // also save to local storage
@@ -75,6 +95,11 @@ const FinalPaymentSection = () => {
     };
 
     // FINAL PAYMENT Actions
+    const handleFinalPaymentModalOpen = () => {
+        setTempFinalPayment(bill.finalPayment);
+        setFinalPaymentModalOpen(true);
+    };
+
     // handle final price change
     const handleUpdateFinalPrice = () => {
         dispatch(updateFinalPayment(tempFinalPayment));
@@ -92,6 +117,18 @@ const FinalPaymentSection = () => {
         });
     };
 
+    const quickTipsChange = (percent: number) => {
+        const calculatedTips = tempFinalPayment.totalPrice * percent;
+        // if tips change update final paid
+        setTempFinalPayment({
+            ...tempFinalPayment,
+            tips: calculatedTips,
+            finalPaid: calculatedTips
+                ? tempFinalPayment.totalPrice + calculatedTips
+                : 0,
+        });
+    };
+
     const hanldeTipsToSplitChange = (
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
@@ -101,6 +138,13 @@ const FinalPaymentSection = () => {
             tipsPaidByName: event.target.checked
                 ? ""
                 : tempFinalPayment.tipsPaidByName,
+        });
+    };
+
+    const handleTipsSplitModeChange = (event: SelectChangeEvent) => {
+        setTempFinalPayment({
+            ...tempFinalPayment,
+            tipsSplitMode: event.target.value,
         });
     };
 
@@ -144,14 +188,18 @@ const FinalPaymentSection = () => {
                 <div>
                     Tax: ${bill.finalPayment.tax.toFixed(2)} (
                     {bill.finalPayment.taxRate * 100}%)
+                    {bill.finalPayment.tax > 0 &&
+                        ` (Will be splitted 
+                    ${
+                        bill.finalPayment.taxSplitMode === "byItem"
+                            ? "by item price"
+                            : "evenly"
+                    })`}
                 </div>
                 <div>
                     Total Price: ${bill.finalPayment.totalPrice.toFixed(2)}
                 </div>
-                <Button
-                    variant="contained"
-                    onClick={() => setBillModalOpen(true)}
-                >
+                <Button variant="contained" onClick={handleBillModalOpen}>
                     Edit Bill
                 </Button>
                 <hr />
@@ -159,7 +207,11 @@ const FinalPaymentSection = () => {
                 <div>
                     Tips: ${bill.finalPayment.tips.toFixed(2)} (
                     {bill.finalPayment.tipsToSplit
-                        ? `Will be splitted`
+                        ? `Will be splitted ${
+                              bill.finalPayment.tipsSplitMode === "byItem"
+                                  ? "by item price"
+                                  : "evenly"
+                          }`
                         : `Pay by ${bill.finalPayment.tipsPaidByName}`}
                     )
                 </div>
@@ -172,6 +224,7 @@ const FinalPaymentSection = () => {
                     Edit Final Payment
                 </Button>
             </Stack>
+
             {/* Bill Modal */}
             <Modal open={billModalOpen} onClose={handleBillModalClose}>
                 <Box sx={modalBoxStyle}>
@@ -184,13 +237,13 @@ const FinalPaymentSection = () => {
                             label="Discount"
                             variant="filled"
                             type="number"
-                            value={tempDiscount}
+                            value={tempFinalPayment.discount}
                             onChange={handleDiscountChange}
                             slotProps={{
                                 input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            %
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            $
                                         </InputAdornment>
                                     ),
                                 },
@@ -200,7 +253,7 @@ const FinalPaymentSection = () => {
                             <Button
                                 size="small"
                                 variant="contained"
-                                onClick={() => setTempDiscount(0)}
+                                onClick={() => updateTempDiscount(0)}
                             >
                                 0%
                             </Button>
@@ -208,7 +261,7 @@ const FinalPaymentSection = () => {
                                 size="small"
                                 variant="contained"
                                 onClick={() =>
-                                    setTempDiscount(
+                                    updateTempDiscount(
                                         bill.finalPayment.subTotal * 0.05
                                     )
                                 }
@@ -219,7 +272,7 @@ const FinalPaymentSection = () => {
                                 size="small"
                                 variant="contained"
                                 onClick={() =>
-                                    setTempDiscount(
+                                    updateTempDiscount(
                                         bill.finalPayment.subTotal * 0.1
                                     )
                                 }
@@ -267,6 +320,30 @@ const FinalPaymentSection = () => {
                                 13% (ON)
                             </Button>
                         </Stack>
+                        <FormControl
+                            sx={{ minWidth: "150px" }}
+                            variant="filled"
+                        >
+                            <InputLabel id="taxs-split-mode-label">
+                                How to split taxs
+                            </InputLabel>
+                            <Select
+                                variant="filled"
+                                labelId="taxs-split-mode-label"
+                                id="taxs-split-mode-select"
+                                value={tempFinalPayment.taxSplitMode}
+                                label="How to split taxs"
+                                onChange={handleTaxsSplitModeChange}
+                            >
+                                <MenuItem key="byItem" value="byItem">
+                                    By Item Price
+                                </MenuItem>
+                                <MenuItem key="evenly" value="evenly">
+                                    Evenly
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
+
                         <Button variant="contained" onClick={handleUpdateBill}>
                             Update
                         </Button>
@@ -300,7 +377,73 @@ const FinalPaymentSection = () => {
                             type="number"
                             value={tempFinalPayment.tips}
                             onChange={handleTipsChange}
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            $
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
                         />
+                        <Grid container direction="row" spacing={2}>
+                            <Grid size={3}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => quickTipsChange(0)}
+                                >
+                                    0%
+                                </Button>
+                            </Grid>
+                            <Grid size={3}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => quickTipsChange(0.1)}
+                                >
+                                    10%
+                                </Button>
+                            </Grid>
+
+                            <Grid size={3}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => quickTipsChange(0.12)}
+                                >
+                                    12%
+                                </Button>
+                            </Grid>
+                            <Grid size={3}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => quickTipsChange(0.15)}
+                                >
+                                    15%
+                                </Button>
+                            </Grid>
+                            <Grid size={3}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => quickTipsChange(0.18)}
+                                >
+                                    18%
+                                </Button>
+                            </Grid>
+                            <Grid size={3}>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => quickTipsChange(0.2)}
+                                >
+                                    20%
+                                </Button>
+                            </Grid>
+                        </Grid>
                         <Stack
                             direction="row"
                             sx={{
@@ -317,18 +460,43 @@ const FinalPaymentSection = () => {
                                 }
                                 label="To split"
                             />
+                            {tempFinalPayment.tipsToSplit && (
+                                <FormControl
+                                    sx={{ minWidth: "150px" }}
+                                    variant="filled"
+                                >
+                                    <InputLabel id="tips-split-mode-label">
+                                        How to split
+                                    </InputLabel>
+                                    <Select
+                                        variant="filled"
+                                        labelId="tips-split-mode-label"
+                                        id="tips-split-mode-select"
+                                        value={tempFinalPayment.tipsSplitMode}
+                                        label="How to split"
+                                        onChange={handleTipsSplitModeChange}
+                                    >
+                                        <MenuItem key="byItem" value="byItem">
+                                            By Item Price
+                                        </MenuItem>
+                                        <MenuItem key="evenly" value="evenly">
+                                            Evenly
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            )}
                             {!tempFinalPayment.tipsToSplit && (
                                 <FormControl
                                     sx={{ minWidth: "150px" }}
                                     variant="filled"
                                 >
-                                    <InputLabel id="demo-simple-select-filled-label">
+                                    <InputLabel id="pay-by-label">
                                         Pay By
                                     </InputLabel>
                                     <Select
                                         variant="filled"
-                                        labelId="demo-simple-select-label"
-                                        id="demo-simple-select"
+                                        labelId="pay-by-label"
+                                        id="pay-by-select"
                                         value={tempFinalPayment.tipsPaidByName}
                                         label="Paid By"
                                         onChange={handleTipsPaidByChange}
@@ -356,6 +524,15 @@ const FinalPaymentSection = () => {
                             type="number"
                             value={tempFinalPayment.finalPaid}
                             onChange={handleFinalPaidChange}
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            $
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
                         />
                         <FormControl
                             sx={{ minWidth: "150px" }}
